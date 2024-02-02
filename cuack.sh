@@ -76,19 +76,23 @@ fi
 
 
 
-# Crear notas.txt con resumen de la información encontrada
-echo "Creando resumen de información en notas.txt..."
+# Iniciar notas.txt con un encabezado y una breve introducción
+echo "Resumen de la Búsqueda de Subdominios y Escaneo de Puertos" > notas.txt
+echo "===========================================================" >> notas.txt
+echo "" >> notas.txt
 
 # Contar y listar subdominios activos
 num_subdominios_activos=$(wc -l < vivos.txt)
-echo "Número de subdominios activos: $num_subdominios_activos" > notas.txt
-echo "" >> notas.txt
+echo "Número de subdominios activos: $num_subdominios_activos" >> notas.txt
+echo "-----------------------------------------------------------" >> notas.txt
 echo "Lista de subdominios activos:" >> notas.txt
 cat vivos.txt >> notas.txt
 echo "" >> notas.txt
+echo "===========================================================" >> notas.txt
 
 # Detalles de IPs y puertos abiertos
 echo "Detalles de las IPs con algún puerto abierto:" >> notas.txt
+echo "-----------------------------------------------------------" >> notas.txt
 current_ip=""
 current_service=""
 waiting_for_background_check=false
@@ -101,7 +105,9 @@ do
       waiting_for_background_check=false
     fi
     current_ip=$(echo $line | grep -oP '\(\K[^\)]+')
-    echo "- $current_ip" >> notas.txt
+    echo "" >> notas.txt
+    echo "IP Analizada: $current_ip" >> notas.txt
+    echo "-----------------------------" >> notas.txt
   elif [[ $line =~ ^[0-9]+/tcp.*open.* ]]; then
     if [[ $waiting_for_background_check == true ]]; then
       echo "         - [?] Posible background de otro servicio" >> notas.txt
@@ -130,5 +136,9 @@ done < nmap.txt
 if [[ $waiting_for_background_check == true ]]; then
   echo "         - [?] Posible background de otro servicio" >> notas.txt
 fi
+
+echo "" >> notas.txt
+echo "===========================================================" >> notas.txt
+echo "Fin del Resumen" >> notas.txt
 
 echo "Resumen creado en notas.txt."
