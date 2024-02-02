@@ -74,4 +74,51 @@ else
     echo "No se encontraron subdominios activos para el análisis detallado o el archivo nmap.txt ya estaba presente."
 fi
 
+#!/bin/bash
 
+# Definición de archivos
+ips_file="ips.txt"
+subdominios_file="subdominios.txt"
+vivos_file="vivos.txt"
+nmap_file="nmap.txt"
+notas_file="notas.txt"
+
+# Limpiar el archivo de notas si ya existe
+: > "$notas_file"
+
+# Extraer y añadir IPs encontradas
+echo "Ips encontradas = $(wc -l < "$ips_file" | awk '{print $1}')" >> "$notas_file"
+while IFS= read -r ip; do
+    echo -e "\t- $ip" >> "$notas_file"
+done < "$ips_file"
+echo "" >> "$notas_file"
+
+# Añadir Subdominios UP
+echo "Subdominios up = $(wc -l < "$vivos_file" | awk '{print $1}')" >> "$notas_file"
+while IFS= read -r line; do
+    echo -e "\t- $line" >> "$notas_file"
+done < "$vivos_file"
+echo "" >> "$notas_file"
+
+# Añadir Subdominios DOWN
+subdominios_down=$(comm -23 <(sort "$subdominios_file") <(sort "$vivos_file"))
+echo "Subdominios down = $(echo "$subdominios_down" | wc -l | awk '{print $1}')" >> "$notas_file"
+echo "$subdominios_down" | sed 's/^/\t- /' >> "$notas_file"
+echo "" >> "$notas_file"
+
+# # Añadir separador y título para detalles de IPs con algún puerto abierto
+echo "------------------------------------------------------------------------------------------------------------------------------------------------" >> "$notas_file"
+echo "Detalles Ips con algún puerto abierto:" >> "$notas_file"
+
+# Extraer IPs y procesar detalles de puertos abiertos para cada IP
+grep "Nmap scan report for" "$nmap_file" | grep -oP '\(\K[0-9\.]+(?=\))' | sort -u | while read -r ip; do
+    echo -e "\n\t- $ip:" >> "$notas_file"
+    # Ajustar awk para procesar correctamente los detalles de cada puerto abierto asociado a la IP
+    awk -v ip="($ip)" '/Nmap scan report for/{current_ip=$NF} current_ip==ip && /^[0-9]+\/tcp/{
+        printf "\t\t- %s %s %s", $1, $2, $3;
+        for(i=4; i<=NF; i++) printf " %s", $i;
+        printf "\n";
+    }' "$nmap_file" >> "$notas_file"
+done
+
+echo "Resumen de análisis guardado en $notas_file"
