@@ -68,7 +68,7 @@ fi
 # Proceder con el escaneo detallado si nmap no existe 
 if [ ! -f nmap.txt ]; then
     echo "Iniciando análisis detallado con nmap sobre ips activas con algún puerto abierto..."
-    sudo nmap -Pn -sV -sC -iL -sV ips.txt --open -script-args destination=/tmp/mirror > nmap.txt
+    sudo nmap -Pn -sV -sC -iL ips.txt --open --script exploit,malware,version,vuln -script-args destination=/tmp/mirror > nmap.txt
     echo "Análisis detallado con nmap completado y guardado en nmap.txt."
 else
     echo "No se encontraron subdominios activos para el análisis detallado o el archivo nmap.txt ya estaba presente."
