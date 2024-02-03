@@ -68,7 +68,7 @@ fi
 # Proceder con el escaneo detallado si nmap no existe 
 if [ ! -f nmap.txt ]; then
     echo "Iniciando análisis detallado con nmap sobre ips activas con algún puerto abierto..."
-    sudo nmap -Pn -sV -sC -iL ips.txt --open > nmap.txt
+    sudo nmap -Pn -sV -sC -iL -sV ips.txt --open -script-args destination=/tmp/mirror > nmap.txt
     echo "Análisis detallado con nmap completado y guardado en nmap.txt."
 else
     echo "No se encontraron subdominios activos para el análisis detallado o el archivo nmap.txt ya estaba presente."
@@ -96,6 +96,10 @@ echo "-----------------------------------------------------------" >> notas.txt
 current_ip=""
 current_service=""
 waiting_for_background_check=false
+vuln_detected=false
+vuln_name=""
+cve_id=""
+
 
 while IFS= read -r line
 do
@@ -128,7 +132,36 @@ do
     echo "         - [!] Redirecciona el tráfico" >> notas.txt
   elif [[ $line =~ http-title: && ! $line =~ Site\ doesn\'t\ have\ a\ title ]]; then
     title=$(echo $line | sed 's/.*http-title: //')
-    echo "         - $title" >> notas.txt
+    echo "         - [*] $title" >> notas.txt
+  elif [[ $line =~ Server: && $line != *Domain\ Name\ Server:* ]]; then
+    server=$(echo $line | grep -oP '(?<=Server: ).*')
+    echo "         - [*] Servidor: $server" >> notas.txt
+
+  elif [[ $line =~ ^\|_http-fetch: && $line != *Please\ enter\ the\ complete\ path\ of\ the\ directory\ to\ save\ data\ in.* ]]; then
+    fetch_data=$(echo $line | sed 's/|_http-fetch: //')
+    echo "         - [i] Datos recogidos por http-fetch: $fetch_data" >> notas.txt
+  fi
+  # Detectar inicio de bloque de vulnerabilidad
+  if [[ $line =~ VULNERABLE: ]]; then
+    vuln_detected=true
+    continue
+  fi
+
+  # Capturar el nombre de la vulnerabilidad inmediatamente después de "VULNERABLE:"
+  if $vuln_detected && [[ -z $vuln_name ]]; then
+    vuln_name=$line
+    trim_vuln_name=$(echo $vuln_name | sed 's/|//g' | xargs) # Limpia y trim
+    continue
+  fi
+
+  # Buscar y capturar el identificador CVE
+  if $vuln_detected && [[ $line =~ CVE:CVE-[0-9]{4}-[0-9]+ ]]; then
+    cve_id=$(echo $line | grep -oP 'CVE-[0-9]{4}-[0-9]+')
+    echo "         - [!] $cve_id - $trim_vuln_name" >> notas.txt
+    # Restablecer variables para la próxima vulnerabilidad
+    vuln_detected=false
+    vuln_name=""
+    cve_id=""
   fi
 done < nmap.txt
 
