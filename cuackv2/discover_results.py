@@ -3,6 +3,7 @@ from prettytable import PrettyTable
 import os
 from utils import print_info, print_success, print_error
 
+
 def parse_nmap_scan_results(nmap_scan_file):
     ip_subdomains = {}
     with open(nmap_scan_file, 'r') as file:
@@ -36,11 +37,12 @@ def parse_light_nmap_xml(xml_file):
                 service_details['version'] = service.get('product', '') + " " + service.get('version', '').strip()
 
                 # Buscar título HTTP
-                http_title = port.find(".//script[@id='http-title']")
+                http_title = port.find(".//script[@id='http-title']/elem[@key='title']")
                 if http_title is not None:
-                    title_output = http_title.get('output')
-                    if title_output and "doesn't have a title" not in title_output:
-                        service_details['details'] += f"[*] {title_output} "
+                    title_text = http_title.text
+                    if title_text and "doesn't have a title" not in title_text:
+                        service_details['details'] += f"[*] {title_text.strip()} "
+
 
                 # Buscar certificado TRAEFIK DEFAULT CERT
                 ssl_cert_script = port.find(".//script[@id='ssl-cert']")
@@ -74,11 +76,7 @@ def print_subdomains_table(ip_subdomains, file=None):
         # Si no es la última IP, añade una fila de separación
         if i < len(ips) - 1:
             table.add_row(['', ''])
-            # Esto añade una línea en blanco entre grupos de IPs. 
-            # Si quieres una línea divisoria visual (como +----+-----+), 
-            # podría ser necesario ajustar manualmente cómo se genera esta salida, 
-            # ya que PrettyTable no soporta directamente filas de separación personalizadas dentro de la tabla.
-    
+           
     if file:
         file.write(table.get_string())
     else:
@@ -96,6 +94,8 @@ def print_services_table(ip_services, file=None):
             else:
                 row = ["", service['port'], service['service'], service['version'], service['details'].strip()]
             table.add_row(row)
+        table.add_row(['', '','','',''])
+            
     if file:
         file.write(table.get_string())
     else:

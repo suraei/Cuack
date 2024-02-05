@@ -5,6 +5,7 @@ from live_subdomains import identify_live_subdomains
 from light_nmap import run_light_nmap
 from utils import print_warning, print_info,ensure_directory
 from discover_results import crear as discover_results_crear
+from exploit import run_searchsploit
 
 
 def user_input(prompt):
@@ -45,6 +46,7 @@ def main():
         run_light_nmap(ips_file, results_directory)
     
     discover_results_crear(results_directory)
+    run_searchsploit(nmap_file, results_directory, domain)
 
 if __name__ == "__main__":
     main()
