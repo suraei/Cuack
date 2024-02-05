@@ -5,7 +5,7 @@ from utils import print_info, print_success, print_error
 def run_nmap(domain_file, nmap_output_file):
     """Ejecuta nmap para identificar subdominios vivos y guarda la salida en un archivo."""
     try:
-        command = f"nmap -sn -iL {domain_file} 2>/dev/null > {nmap_output_file}"
+        command = f"nmap -sn -iL {domain_file} 2>/dev/null -oN {nmap_output_file}"
         subprocess.run(command, shell=True, check=True)
     except subprocess.CalledProcessError as e:
         print_error(f"Error al ejecutar Nmap: {e}")

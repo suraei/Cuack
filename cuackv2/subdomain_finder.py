@@ -28,6 +28,7 @@ def find_subdomains(domain, results_directory):
 
     with ThreadPoolExecutor(max_workers=len(tools)) as executor:
         for tool in tools:
+            print_info(f"Ejecutando: {tool}")
             executor.submit(run_tool, tool, output_file)
 
     # Elimina duplicados en el archivo de salida
@@ -44,4 +45,5 @@ def find_subdomains(domain, results_directory):
             file.write(domain + "\n")
 
     print_success("La búsqueda de subdominios ha finalizado.")
+    print_info(f"Se encontraron {len(unique_subdomains)} subdominios únicos.")
     print_info(f"Los resultados se han guardado en {output_file}")

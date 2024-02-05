@@ -1,5 +1,6 @@
 from colorama import init, Fore
 import os
+import ipaddress
 
 # Inicializa Colorama para habilitar la impresión en colores en la terminal.
 init(autoreset=True)
@@ -26,3 +27,17 @@ def ensure_directory(domain):
     if directory and not os.path.exists(directory):
         os.makedirs(directory)
     return directory
+
+def is_ip(address):
+    """Determina si la cadena dada es una dirección IP válida."""
+    try:
+        ipaddress.ip_address(address)
+        return True
+    except ValueError:
+        return False
+
+def write_ip_to_file(ip, file_path):
+    """Escribe la dirección IP en el archivo especificado."""
+    with open(file_path, 'w') as file:
+        file.write(ip + '\n')
+    print_info(f"La dirección IP {ip} ha sido guardada en {file_path}.")
