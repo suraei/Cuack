@@ -34,6 +34,8 @@ def main():
         user_choice = user_input("El archivo 'ips.txt' ya existe. ¿Quieres volver a lanzar el identificador de subdominios vivos e IPs? (s/n): ").lower()
         if user_choice == 's':
             identify_live_subdomains(subdomains_file, results_directory)
+    else:
+        identify_live_subdomains(subdomains_file, results_directory)
     
     if os.path.exists(nmap_file):
         user_choice = user_input("El archivo 'light.nmap.xml' ya existe. ¿Quieres volver a lanzar el escaneo de Nmap? (s/n): ").lower()

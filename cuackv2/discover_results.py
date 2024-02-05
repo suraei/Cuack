@@ -49,6 +49,12 @@ def parse_light_nmap_xml(xml_file):
                     if "TRAEFIK DEFAULT CERT" in ssl_output:
                         service_details['details'] += "[!] Redirecciona el tráfico "
 
+                # Nueva condición para vrml-multi-use y HTTP/1.1 200 OK
+                if service_details['service'] == 'vrml-multi-use':
+                    for script in port.findall('.//script'):
+                        if script.get('output') and "HTTP/1.1 200 OK" in script.get('output'):
+                            service_details['details'] += "[?] Posible background de servicio "
+
             ip_services[ip_address].append(service_details)
     return ip_services
 
@@ -98,7 +104,7 @@ def print_services_table(ip_services, file=None):
 
 def crear(results_directory):
     print_info("Creando reporte de fase de descubrimiento...")
-    nmap_scan_file = os.path.join(results_directory, "subdominios.nmap")
+    nmap_scan_file = os.path.join(results_directory, "vivos.nmap")
     xml_file = os.path.join(results_directory, "light.nmap.xml")
     output_file = os.path.join(results_directory, "discover_results.txt")
     
