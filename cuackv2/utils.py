@@ -41,3 +41,21 @@ def write_ip_to_file(ip, file_path):
     with open(file_path, 'w') as file:
         file.write(ip + '\n')
     print_info(f"La dirección IP {ip} ha sido guardada en {file_path}.")
+
+def print_colored_animals():
+    """Imprime un arte ASCII de un conejito y un pato con colores."""
+    # Define los colores utilizando códigos de escape ANSI
+    class Colors:
+        YELLOW = '\033[93m'
+        WHITE = '\033[97m'
+        RESET = '\033[0m'
+
+    # Dibuja el conejito y el pato con colores
+    arte = f"""
+{Colors.WHITE}   (\\(\\    {Colors.YELLOW}  >(.)__ <( Quack! )
+{Colors.WHITE}   (-.-)    {Colors.YELLOW}    (___/  
+{Colors.WHITE}  o_(")("){Colors.RESET}
+    """
+    print(arte)
+
+

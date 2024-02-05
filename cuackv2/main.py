@@ -3,7 +3,7 @@ import subprocess
 from subdomain_finder import find_subdomains
 from live_subdomains import identify_live_subdomains
 from light_nmap import run_light_nmap
-from utils import print_warning, print_info,ensure_directory,is_ip,write_ip_to_file
+from utils import print_warning, print_info,ensure_directory,is_ip,write_ip_to_file,print_colored_animals
 from discover_results import crear as discover_results_crear
 from exploit import run_searchsploit
 from dirb import run_dirb_on_ips,extract_ips_with_web_ports
@@ -14,6 +14,7 @@ def user_input(prompt):
     return input()
 
 def main():
+    print_colored_animals()
     domain = user_input("Por favor, introduce la URL o IP: ").strip()
     results_directory = ensure_directory(domain)
     subdomains_file = os.path.join(results_directory, "subdominios.txt")
