@@ -103,20 +103,35 @@ def print_services_table(ip_services, file=None):
 
 
 def crear(results_directory):
-    print_info("Creando reporte de fase de descubrimiento...")
-    nmap_scan_file = os.path.join(results_directory, "vivos.nmap")
-    xml_file = os.path.join(results_directory, "light.nmap.xml")
-    output_file = os.path.join(results_directory, "discover_results.txt")
+    print_info("Creando reporte de la fase de descubrimiento...")
+    output_file = os.path.join(results_directory, "reporte_descubrimiento.txt")
     
-    ip_subdomains = parse_nmap_scan_results(nmap_scan_file)
-    ip_services = parse_light_nmap_xml(xml_file)
-    
+    # Intenta parsear los resultados del escaneo Nmap para subdominios
+    try:
+        nmap_scan_file = os.path.join(results_directory, "vivos.nmap")
+        ip_subdomains = parse_nmap_scan_results(nmap_scan_file)
+    except FileNotFoundError:
+        print_error("Archivo 'vivos.nmap' no encontrado. Se omitirá la sección de subdominios vivos.")
+        ip_subdomains = {}  # Usa un diccionario vacío o una estructura similar si es necesario
+
+    # Intenta parsear los resultados del escaneo Nmap para servicios IP
+    try:
+        nmap_xml_file = os.path.join(results_directory, "light.nmap.xml")
+        ip_services = parse_light_nmap_xml(nmap_xml_file)
+    except FileNotFoundError:
+        print_info("Archivo 'light.nmap.xml' no encontrado. Se omitirá la sección de servicios IP.")
+        ip_services = {}  # Usa un diccionario vacío o una estructura similar si es necesario
+
+    # Escribe los resultados al archivo de salida
     with open(output_file, "w") as file:
-        print_subdomains_table(ip_subdomains, file)
-        file.write("\n")  
-        print_services_table(ip_services, file)
+        if ip_subdomains:
+            print_subdomains_table(ip_subdomains, file)
+            file.write("\n")
+        if ip_services:
+            print_services_table(ip_services, file)
 
     print_success(f"Reporte de fase de descubrimiento creado correctamente en {output_file}")
+
 
 if __name__ == "__main__":
     main()
