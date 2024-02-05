@@ -1,6 +1,7 @@
 import xml.etree.ElementTree as ET
 from prettytable import PrettyTable
 import os
+from utils import print_info, print_success, print_error
 
 def parse_nmap_scan_results(nmap_scan_file):
     ip_subdomains = {}
@@ -20,29 +21,42 @@ def parse_light_nmap_xml(xml_file):
     tree = ET.parse(xml_file)
     root = tree.getroot()
     for host in root.findall('.//host'):
-        try:
-            ip_address = host.find("address[@addrtype='ipv4']").get("addr")
-            ip_services[ip_address] = []
-            for port in host.findall('.//port'):
-                service = port.find('service')
-                service_name = service.get('name', 'unknown') if service is not None else 'unknown'
-                service_product = service.get('product', '') if service is not None else ''
-                service_version = service.get('version', '') if service is not None else ''
-                portid = port.get('portid')
-                protocol = port.get('protocol')
-                ip_services[ip_address].append({
-                    'port': f"{portid}/{protocol}",
-                    'service': service_name,
-                    'version': f"{service_product} {service_version}".strip()
-                })
-        except AttributeError:
-            # Maneja casos donde el host no tiene una dirección IPv4 o la estructura es inesperada
-            continue
+        ip_address = host.find("address[@addrtype='ipv4']").get("addr")
+        ip_services[ip_address] = []
+        for port in host.findall('.//port'):
+            service_details = {
+                'port': f"{port.get('portid')}/{port.get('protocol')}",
+                'service': 'unknown',
+                'version': '',
+                'details': ''
+            }
+            service = port.find('service')
+            if service is not None:
+                service_details['service'] = service.get('name', 'unknown')
+                service_details['version'] = service.get('product', '') + " " + service.get('version', '').strip()
+
+                # Buscar título HTTP
+                http_title = port.find(".//script[@id='http-title']")
+                if http_title is not None:
+                    title_output = http_title.get('output')
+                    if title_output and "doesn't have a title" not in title_output:
+                        service_details['details'] += f"[*] {title_output} "
+
+                # Buscar certificado TRAEFIK DEFAULT CERT
+                ssl_cert_script = port.find(".//script[@id='ssl-cert']")
+                if ssl_cert_script is not None:
+                    ssl_output = ssl_cert_script.get('output')
+                    if "TRAEFIK DEFAULT CERT" in ssl_output:
+                        service_details['details'] += "[!] Redirecciona el tráfico "
+
+            ip_services[ip_address].append(service_details)
     return ip_services
+
+
 
 def print_subdomains_table(ip_subdomains, file=None):
     table = PrettyTable()
-    table.field_names = ["IPs", "Subdominios Vivos"]
+    table.field_names = ["IPs", "Subdominios"]
     ips = list(ip_subdomains.keys())
     for i, ip in enumerate(ips):
         subdomains = ip_subdomains[ip]
@@ -66,22 +80,24 @@ def print_subdomains_table(ip_subdomains, file=None):
 
 def print_services_table(ip_services, file=None):
     table = PrettyTable()
-    table.field_names = ["IPs", "Puertos", "Servicios", "Versiones"]
+    table.field_names = ["IPs", "Puertos", "Servicios", "Versiones", "Detalles"]
     for ip, services in ip_services.items():
         first = True
         for service in services:
             if first:
-                row = [ip, service['port'], service['service'], service['version']]
+                row = [ip, service['port'], service['service'], service['version'], service['details'].strip()]
                 first = False
             else:
-                row = ["", service['port'], service['service'], service['version']]
+                row = ["", service['port'], service['service'], service['version'], service['details'].strip()]
             table.add_row(row)
     if file:
         file.write(table.get_string())
     else:
         print(table)
 
+
 def crear(results_directory):
+    print_info("Creando reporte de fase de descubrimiento...")
     nmap_scan_file = os.path.join(results_directory, "subdominios.nmap")
     xml_file = os.path.join(results_directory, "light.nmap.xml")
     output_file = os.path.join(results_directory, "discover_results.txt")
@@ -93,6 +109,8 @@ def crear(results_directory):
         print_subdomains_table(ip_subdomains, file)
         file.write("\n")  
         print_services_table(ip_services, file)
+
+    print_success(f"Reporte de fase de descubrimiento creado correctamente en {output_file}")
 
 if __name__ == "__main__":
     main()
