@@ -24,7 +24,7 @@ Para sistemas basados en Debian/Ubuntu, puedes instalar estas herramientas con:
 ```bash
 sudo apt-get install amass assetfinder subfinder nmap
 ```
-## 🛠 Pasos
+## :wheelchair: Pasos
 
 ### Clonar el repositorio:
 
@@ -39,7 +39,7 @@ git clone https://github.com/suraei/cuack.git
 pip install -r requirements.txt
 ```
 
-##📝 Uso
+## 📝 Uso
 
 Para empezar a utilizar Cuack, ejecuta el script principal y sigue las instrucciones en pantalla:
 
@@ -47,11 +47,11 @@ Para empezar a utilizar Cuack, ejecuta el script principal y sigue las instrucci
 python3 main.py
 ```
 
-##🤝 Contribuciones
+## 🤝 Contribuciones
 
 ¡Las contribuciones son muy bienvenidas! 🎉 Si tienes ideas para mejorar Cuack o quieres añadir nuevas características, no dudes en crear un pull request o abrir un issue.
 
-##📄 Licencia
+## 📄 Licencia
 
 Cuack se distribuye bajo la licencia MIT. Consulta el archivo LICENSE para más detalles.
 
