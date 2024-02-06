@@ -1,6 +1,6 @@
 # 🐾 CuackV3
 
-Bienvenido a CuackV3, una herramienta encantadora y eficaz diseñada para la búsqueda de subdominios y la verificación de hosts vivos, todo presentado con un estilo "cute". 🦆💻 Este proyecto ofrece una experiencia de usuario colorida y amena, perfecta para aquellos en el campo de la seguridad informática que buscan añadir un poco de diversión a su trabajo.
+Bienvenido a CuackV3, una herramienta diseñada para la búsqueda de subdominios y la verificación de hosts vivos. 🦆💻 Este proyecto ofrece una experiencia de usuario colorida y amena.
 
 ## 🌟 Características
 
