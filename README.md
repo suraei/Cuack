@@ -1,48 +1,57 @@
-# 🐾 CuackV3
+# Cuack: Herramienta de Análisis de Red 🌐 :duck:
 
-Bienvenido a CuackV3, una herramienta diseñada para la búsqueda de subdominios y la verificación de hosts vivos. 🦆💻 Este proyecto ofrece una experiencia de usuario colorida y amena.
+**Cuack** es una herramienta avanzada de análisis de red diseñada para facilitar la exploración y el análisis de infraestructuras de red. Incorpora funcionalidades para descubrimiento de subdominios, comprobación de hosts vivos, análisis de servicios y generación de reportes detallados.
 
-## 🌟 Características
+## 🚀 Características Principales
 
-- **Interfaz de usuario interactiva y colorida**: Preguntas y mensajes informativos destacados con colores vibrantes.
-- **Búsqueda de Subdominios**: Utiliza Amass, Assetfinder y Subfinder para encontrar subdominios de manera efectiva.
-- **Comprobación de Hosts Vivos**: Emplea Nmap para determinar la accesibilidad de los hosts encontrados.
-- **Resultados Organizados**: Almacena los resultados en archivos dentro de una estructura de directorios clara y ordenada.
+- 🌟 **Descubrimiento de Subdominios**: Utiliza herramientas líderes para encontrar subdominios relacionados con un dominio objetivo.
+- 🖥 **Comprobación de Hosts Vivos**: Identifica qué hosts están activos utilizando Nmap.
+- 🔍 **Análisis Detallado de Servicios**: Extrae información detallada de los servicios, incluyendo versiones de productos y configuraciones específicas.
+- 📊 **Reportes fáciles**: Genera informes detallados, organizados y fáciles de entender, utilizando tablas y separaciones visuales.
 
-## 📦 Instalación
+## 🛠 Instalación
 
-### Clonar el repositorio
+### Pre-requisitos
 
-Para obtener el código fuente del proyecto:
+Asegúrate de tener Python 3 y las siguientes herramientas instaladas:
+- Amass
+- Assetfinder
+- Subfinder
+- Nmap
+
+Para sistemas basados en Debian/Ubuntu, puedes instalar estas herramientas con:
+
+```bash
+sudo apt-get install amass assetfinder subfinder nmap
+```
+## 🛠 Pasos
+
+### Clonar el repositorio:
 
 ```bash
 git clone https://github.com/suraei/cuack.git
-cd cuackv3
 ```
 
-### Instalar dependencias del sistema
-
-CuackV3 depende de varias herramientas de línea de comandos que puedes instalar usando apt en sistemas basados en Debian/Ubuntu:
+###Instalar dependencias de Python desde requirements.txt:
 
 ```bash
-sudo apt update
-sudo apt install -y amass assetfinder subfinder nmap
+
+pip install -r requirements.txt
 ```
 
-### Instalar dependencias de Python
+##📝 Uso
 
-CuackV3 también utiliza algunas bibliotecas de Python especificadas en requirements.txt. Asegúrate de tener Python3 y pip instalados, y luego ejecuta:
-
-```bash
-pip3 install -r requirements.txt
-```
-
-## 🚀 Uso
-
-Para usar CuackV3, simplemente ejecuta el script principal. El programa te guiará a través del proceso con preguntas interactivas:
+Para empezar a utilizar Cuack, ejecuta el script principal y sigue las instrucciones en pantalla:
 
 ```bash
 python3 main.py
 ```
 
-Sigue las instrucciones en pantalla para completar tu análisis de dominios o direcciones IP.
+##🤝 Contribuciones
+
+¡Las contribuciones son muy bienvenidas! 🎉 Si tienes ideas para mejorar Cuack o quieres añadir nuevas características, no dudes en crear un pull request o abrir un issue.
+
+##📄 Licencia
+
+Cuack se distribuye bajo la licencia MIT. Consulta el archivo LICENSE para más detalles.
+
