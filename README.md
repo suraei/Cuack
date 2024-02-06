@@ -4,7 +4,7 @@
 
 ## 🚀 Características Principales
 
-- 🌟 **Descubrimiento de Subdominios**: Utiliza herramientas líderes para encontrar subdominios relacionados con un dominio objetivo.
+- 🌟 **Descubrimiento de Subdominios**: Utiliza herramientas para encontrar subdominios relacionados con un dominio objetivo.
 - 🖥 **Comprobación de Hosts Vivos**: Identifica qué hosts están activos utilizando Nmap.
 - 🔍 **Análisis Detallado de Servicios**: Extrae información detallada de los servicios, incluyendo versiones de productos y configuraciones específicas.
 - 📊 **Reportes fáciles**: Genera informes detallados, organizados y fáciles de entender, utilizando tablas y separaciones visuales.
