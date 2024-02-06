@@ -3,7 +3,7 @@ import subprocess
 from subdomain_finder import find_subdomains
 from live_subdomains import identify_live_subdomains
 from light_nmap import run_light_nmap
-from utils import print_warning, print_info,ensure_directory,is_ip,write_ip_to_file,print_colored_animals,extract_ips_with_web_ports
+from utils import *
 from discover_results import crear as discover_results_crear
 from exploit import run_searchsploit
 from dirb import run_dirb_on_ips,extract_ips_with_web_ports
@@ -25,11 +25,11 @@ def main():
     exploit_file=os.path.join(results_directory, "exploits.txt")
 
     if not domain:
-        print_warning("No se proporcionó una URL o IP válida. Terminando el programa.")
+        print_error("No se proporcionó una URL o IP válida. Terminando el programa.")
         return
     
     if is_ip(domain):
-        print_info("Se ha detectado una dirección IP. Omitiendo la búsqueda de subdominios.Lanzando escaneo de Nmap...")
+        print_warning("Se ha detectado una dirección IP. Omitiendo la búsqueda de subdominios.Lanzando escaneo de Nmap...")
         write_ip_to_file(domain, ips_file)
     else:   
         if os.path.exists(subdomains_file):

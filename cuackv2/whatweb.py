@@ -1,7 +1,7 @@
 import subprocess
 from prettytable import PrettyTable
 import re
-import utils
+from utils import *
 
 def run_whatweb(ip):
     """Ejecuta whatweb en la IP dada y extrae información específica de la salida."""

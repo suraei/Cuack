@@ -1,7 +1,7 @@
 import xml.etree.ElementTree as ET
 from prettytable import PrettyTable
 import os
-from utils import print_info, print_success, print_error
+from utils import *
 
 
 def parse_nmap_scan_results(nmap_scan_file):
@@ -130,7 +130,7 @@ def crear(results_directory):
         if ip_services:
             print_services_table(ip_services, file)
 
-    print_info(f"Reporte de fase de descubrimiento creado correctamente en {output_file}")
+    print_warning(f"Reporte de fase de descubrimiento creado correctamente en {output_file}")
 
 
 if __name__ == "__main__":

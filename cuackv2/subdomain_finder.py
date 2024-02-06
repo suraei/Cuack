@@ -1,7 +1,7 @@
 import subprocess
 from concurrent.futures import ThreadPoolExecutor
 import os
-from utils import print_info, print_success, print_error
+from utils import *
 
 def run_tool(command, output_file):
     """Ejecuta una herramienta de línea de comandos y guarda su salida."""
@@ -44,6 +44,4 @@ def find_subdomains(domain, results_directory):
         for domain in sorted(unique_subdomains):
             file.write(domain + "\n")
 
-    print_info("La búsqueda de subdominios ha finalizado.")
-    print_info(f"Se encontraron {len(unique_subdomains)} subdominios únicos.")
-    print_info(f"Los resultados se han guardado en {output_file}")
+    print_warning("La búsqueda de subdominios ha finalizado.Se encontraron {len(unique_subdomains)} subdominios únicos.Los resultados se han guardado en {output_file}")

@@ -2,7 +2,7 @@ import os
 import xml.etree.ElementTree as ET
 import subprocess
 from concurrent.futures import ThreadPoolExecutor
-from utils import print_info, print_success, print_error,extract_ips_with_web_ports
+from utils import *
 
 
     
@@ -26,7 +26,7 @@ def run_dirb_tool(ip, results_directory):
         result = subprocess.check_output(command, shell=True, stderr=subprocess.DEVNULL)
         with open(output_file, "wb") as file:
             file.write(result)
-        print_info(f"Escaneo de Dirb completado para {ip}. Resultados guardados en {output_file}")
+        print_warning(f"Escaneo de Dirb completado para {ip}. Resultados guardados en {output_file}")
     except subprocess.CalledProcessError as e:
         print_error(f"Error al ejecutar Dirb en {ip}: {e}")
 

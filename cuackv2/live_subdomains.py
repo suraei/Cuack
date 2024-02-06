@@ -1,6 +1,6 @@
 import subprocess
 import os
-from utils import print_info, print_success, print_error
+from utils import *
 
 def run_nmap(domain_file, nmap_output_file):
     """Ejecuta nmap para identificar subdominios vivos y guarda la salida en un archivo."""
@@ -34,7 +34,7 @@ def process_nmap_output(nmap_output_file, live_subdomains_file, unique_ips_file)
         for ip in unique_ips:
             ips_file.write(ip + "\n")
 
-    print_info(f"Identificación de subdominios vivos completada.Subdominios vivos guardados en {live_subdomains_file} e IPs únicas guardadas en {unique_ips_file}")
+    print_warning(f"Identificación de subdominios vivos completada.Subdominios vivos guardados en {live_subdomains_file} e IPs únicas guardadas en {unique_ips_file}")
 
 def identify_live_subdomains(domain, results_directory):
     """Identifica subdominios vivos utilizando Nmap."""
