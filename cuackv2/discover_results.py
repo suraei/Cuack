@@ -130,7 +130,7 @@ def crear(results_directory):
         if ip_services:
             print_services_table(ip_services, file)
 
-    print_success(f"Reporte de fase de descubrimiento creado correctamente en {output_file}")
+    print_info(f"Reporte de fase de descubrimiento creado correctamente en {output_file}")
 
 
 if __name__ == "__main__":

@@ -44,6 +44,6 @@ def find_subdomains(domain, results_directory):
         for domain in sorted(unique_subdomains):
             file.write(domain + "\n")
 
-    print_success("La búsqueda de subdominios ha finalizado.")
+    print_info("La búsqueda de subdominios ha finalizado.")
     print_info(f"Se encontraron {len(unique_subdomains)} subdominios únicos.")
     print_info(f"Los resultados se han guardado en {output_file}")

@@ -34,7 +34,7 @@ def process_nmap_output(nmap_output_file, live_subdomains_file, unique_ips_file)
         for ip in unique_ips:
             ips_file.write(ip + "\n")
 
-    print_success(f"Identificación de subdominios vivos completada.Subdominios vivos guardados en {live_subdomains_file} e IPs únicas guardadas en {unique_ips_file}")
+    print_info(f"Identificación de subdominios vivos completada.Subdominios vivos guardados en {live_subdomains_file} e IPs únicas guardadas en {unique_ips_file}")
 
 def identify_live_subdomains(domain, results_directory):
     """Identifica subdominios vivos utilizando Nmap."""

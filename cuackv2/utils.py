@@ -1,6 +1,7 @@
 from colorama import init, Fore
 import os
 import ipaddress
+import xml.etree.ElementTree as ET
 
 # Inicializa Colorama para habilitar la impresión en colores en la terminal.
 init(autoreset=True)
@@ -57,5 +58,32 @@ def print_colored_animals():
 {Colors.WHITE}  o_(")("){Colors.RESET}
     """
     print(arte)
+
+def extract_ips_with_web_ports(nmap_file):
+    """
+    Extrae las IPs que tienen puertos web abiertos de un archivo nmap en formato XML.
+    
+    Args:
+        nmap_file (str): Ruta al archivo nmap XML.
+    
+    Returns:
+        list: Lista de IPs con puertos web abiertos.
+    """
+    web_ports = {'80', '443', '8080', '8000'}  # Define los puertos web comunes
+    ips_with_web_ports = []
+
+    tree = ET.parse(nmap_file)
+    root = tree.getroot()
+
+    for host in root.findall('host'):
+        if host.find('status').get('state') == 'up':  # Solo considera hosts activos
+            ip_address = host.find('address').get('addr')
+            ports = host.find('ports').findall('port')
+            for port in ports:
+                if port.get('protocol') == 'tcp' and port.get('portid') in web_ports and port.find('state').get('state') == 'open':
+                    ips_with_web_ports.append(ip_address)
+                    break  # Si encuentra un puerto web abierto, añade la IP y continúa con el siguiente host
+
+    return ips_with_web_ports
 
 

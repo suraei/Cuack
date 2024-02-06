@@ -10,4 +10,4 @@ def run_light_nmap(ips_file, results_directory):
     command = f"nmap -iL {ips_file} -sVC --open -oX {output_file}"
 
     subprocess.run(command, shell=True)
-    print_success(f"nmap finalizó correctamente.Los resultados se han guardado en {output_file}")
+    print_info(f"nmap finalizó correctamente.Los resultados se han guardado en {output_file}")
