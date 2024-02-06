@@ -32,7 +32,7 @@ sudo apt-get install amass assetfinder subfinder nmap
 git clone https://github.com/suraei/cuack.git
 ```
 
-###Instalar dependencias de Python desde requirements.txt:
+### Instalar dependencias de Python desde requirements.txt:
 
 ```bash
 
