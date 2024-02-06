@@ -3,7 +3,6 @@ from concurrent.futures import ThreadPoolExecutor
 import os
 from utils.utils import *
 
-
 def buscar_subdominios(url):
     """Encuentra subdominios utilizando varias herramientas y guarda los resultados."""
     tools = [
@@ -21,10 +20,11 @@ def buscar_subdominios(url):
 
     with ThreadPoolExecutor(max_workers=len(tools)) as executor:
         for tool in tools:
-            print_info(f"Ejecutando: {tool}")
+            print_sub_info(f"- {tool}")
             executor.submit(run_tool, tool, subdominios)
 
     eliminar_duplicados(subdominios)  # Elimina duplicados en el archivo de salida
 
     print_success("La búsqueda de subdominios ha finalizado.")
+    print_file(subdominios)
     print_info(f"Los resultados se han guardado en {subdominios}")

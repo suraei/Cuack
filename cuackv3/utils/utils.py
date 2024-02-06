@@ -10,19 +10,23 @@ def init(autoreset=True):
 
 def print_info(message):
     """Imprime un mensaje informativo en azul."""
-    print(f"\033[94m[*] {message}\033[0m")
+    print(f"\033[94m\n[*] {message}\033[0m")
+
+def print_sub_info(message):
+    """Imprime un mensaje informativo en azul."""
+    print(f"\033[94m\t{message}\033[0m")
 
 def print_success(message):
     """Imprime un mensaje de éxito en verde."""
-    print(f"\033[92m[!] {message}\033[0m")
+    print(f"\033\n[92m[!] {message}\033[0m")
 
 def print_error(message):
     """Imprime un mensaje de error en rojo."""
-    print(f"\033[91m[X] {message}\033[0m")
+    print(f"\033[91m\n[X] {message}\033[0m")
 
 def print_warning(message):
     """Imprime un mensaje de advertencia en amarillo."""
-    print(f"\033[93m[*] {message}\033[0m")
+    print(f"\033[93m\n[*] {message}\033[0m")
 
 def ensure_directory(domain):
     """Asegura la creación de un directorio para los resultados, basado en el dominio."""
@@ -166,4 +170,24 @@ def guardar_en_archivo(contenido, archivo_destino):
     with open(archivo_destino, "w") as archivo:
         for item in sorted(contenido):
             archivo.write(item + "\n")
-    print_info(f"Guardado en {archivo_destino}")
+    
+def print_file(archivo):
+    """
+    Imprime el contenido de un archivo especificado línea por línea.
+    """ 
+    try:
+        with open(archivo, 'r') as file:
+            print("\n")
+            contenido = file.read()        
+            print(contenido)
+    except FileNotFoundError:
+        print_error(f"El archivo {archivo} no se encontró.")
+
+def ask_user(message):
+    """
+    Imprime una pregunta para el usuario en color amarillo precedida por [?].
+    """
+    YELLOW = '\033[93m'
+    RESET = '\033[0m'
+    question = f"\n{YELLOW}[?]{RESET} {YELLOW}{message}{RESET}"
+    return input(question)

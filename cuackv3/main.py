@@ -12,18 +12,16 @@ def main():
     print_titulo()
 
     # Pedir al usuario que ingrese una URL o dirección IP para analizar
-    user_input = input("Por favor, ingrese una URL o una dirección IP para analizar: ").strip()
+    user_input=ask_user("Por favor, ingrese una URL o una dirección IP para analizar: ").strip()
 
     # Comprobar si la entrada es una dirección IP válida
     if is_ip(user_input):
-        print_info("ES UNA IP VALIDA")
         domain = user_input  
     else:
         # Si no es una dirección IP válida, comprobar si es una URL válida
         if is_valid_url(user_input):
             domain = obtener_dominio_desde_url(user_input)  # Obtener el dominio desde la URL
-            print_info("ES UNA URL VALIDA")
-            opcion = input("¿Deseas buscar subdominios? (S/N): ").strip().lower()
+            opcion=ask_user("¿Deseas buscar subdominios? (S/N): ").strip().lower()
             if opcion == "s":
                 buscar_subdominios(domain)
         else:
@@ -32,7 +30,7 @@ def main():
             return
 
     # Pregunta si desea comprobar hosts vivos
-    opcion_vivos = input("¿Deseas comprobar qué hosts están vivos? (S/N): ").strip().lower()
+    opcion_vivos=ask_user("¿Deseas comprobar qué hosts están vivos? (S/N): ").strip().lower()
     if opcion_vivos == "s":
         comprobar_hosts_vivos(domain)
         
