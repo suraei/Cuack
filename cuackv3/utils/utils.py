@@ -2,7 +2,7 @@ import os
 import re
 import ipaddress
 import subprocess
-
+import xml.etree.ElementTree as ET
 
 def init(autoreset=True):
     """Inicializa la salida de colores."""
@@ -69,7 +69,8 @@ def print_titulo():
     arte = f"""
 {Colors.WHITE}   (\\(\\    {Colors.YELLOW}  >(.)__ <( Quack! )
 {Colors.WHITE}   (-.-)    {Colors.YELLOW}    (___/  
-{Colors.WHITE}  o_(")("){Colors.RESET}    https://www.github.com/suraei/cuack
+{Colors.WHITE}  o_(")("){Colors.RESET}    
+                                https://www.github.com/suraei/cuack
     """
     print(arte)
 
@@ -148,20 +149,29 @@ def comprobar_archivo_resultados(dominio, nombre_archivo):
 def extraer_hosts_vivos_de_nmap(archivo_nmap):
     """
     Extrae hosts vivos y sus IPs desde un archivo de salida de Nmap.
-    Devuelve dos conjuntos: uno de IPs y otro de subdominios.
+    Devuelve un diccionario donde las claves son las IPs y los valores son listas de subdominios asociados.
     """
-    ips = set()
-    subdominios = set()
+    ips_subdominios = {}
     with open(archivo_nmap, "r") as archivo:
         for linea in archivo:
             if "Nmap scan report for" in linea:
                 partes = linea.split()
-                ip = partes[-1].strip("()")
-                host = partes[-2] if partes[-2] != ip else None
-                ips.add(ip)
-                if host and host != "localhost":
-                    subdominios.add(host)
-    return ips, subdominios
+                # Buscar IP dentro de paréntesis, que indica la presencia de un nombre de host
+                if "(" in linea:
+                    ip = partes[-1].strip("()")
+                    subdominio = partes[4]  # El subdominio debería estar en esta posición
+                else:
+                    ip = partes[-1]  # Si no hay paréntesis, la IP es el último elemento
+                    subdominio = None  # No hay subdominio asociado
+
+                if ip not in ips_subdominios:
+                    ips_subdominios[ip] = []
+
+                if subdominio and subdominio != "localhost" and subdominio not in ips_subdominios[ip]:
+                    ips_subdominios[ip].append(subdominio)
+
+    return ips_subdominios
+
 
 def guardar_en_archivo(contenido, archivo_destino):
     """
@@ -191,3 +201,70 @@ def ask_user(message):
     RESET = '\033[0m'
     question = f"\n{YELLOW}[?]{RESET} {YELLOW}{message}{RESET}"
     return input(question)
+
+def parsear_ips_nmap(archivo_xml):
+    """Devuelve una lista de todas las IPs encontradas en el archivo nmap.xml."""
+    ips = []
+    try:
+        tree = ET.parse(archivo_xml)
+        root = tree.getroot()
+        for host in root.findall('./host'):
+            if 'status' in host.attrib and host.attrib['status'] == 'up':
+                address = host.find('address')
+                if address is not None:
+                    ips.append(address.attrib['addr'])
+    except ET.ParseError:
+        print_error("Error al parsear el archivo XML.")
+    except FileNotFoundError:
+        print_error(f"No se encontró el archivo {archivo_xml}.")
+    
+    return ips
+
+def interpretar_scripts(scripts):
+    """Interpreta la salida de los scripts para asignar valores a detalles basados en reglas."""
+    detalles = []
+    if "TRAEFIK DEFAULT CERT" in scripts:
+        detalles.append("[!] Redirecciona el tráfico")
+    # Agrega más reglas según sea necesario
+    return "; ".join(detalles)
+
+def parsear_nmap(archivo_xml):
+    resultado = {}
+    try:
+        tree = ET.parse(archivo_xml)
+        root = tree.getroot()
+        for host in root.findall('.//host'):
+            if host.find('./status').get('state') == 'up':
+                ip = host.find('./address').get('addr')
+                puertos_servicios = {}
+                for port in host.findall('.//port'):
+                    if port.find('./state').get('state') == 'open':
+                        portid = port.get('portid') + '/' + port.get('protocol')
+                        servicio = port.find('./service').get('name', 'unknown')
+                        producto = port.find('./service').get('product', '')
+                        version = port.find('./service').get('version', '')
+                        extrainfo = port.find('./service').get('extrainfo', '')
+                        scripts_outputs = [script.get('output') for script in port.findall('./script')]
+                        scripts_info = "; ".join(scripts_outputs)
+                        detalles = interpretar_scripts(scripts_info)
+
+                        # Ajuste para 'producto' y 'version' con la condición general [A]/[B]
+                        version_servidor = f"{producto} {version}".strip()
+                        if '/' in version_servidor:
+                            version_servidor = version_servidor.split('/')[0]
+
+                        servicio_info = {
+                            'servicio': servicio,
+                            'version': version_servidor,
+                            'detalles': detalles,
+                            'extrainfo': extrainfo,
+                            'scripts': scripts_info
+                        }
+                        puertos_servicios[portid] = servicio_info
+                resultado[ip] = puertos_servicios
+    except ET.ParseError as e:
+        print_error(f"Error al parsear el archivo XML: {e}")
+    except FileNotFoundError:
+        print_error(f"No se encontró el archivo {archivo_xml}.")
+
+    return resultado
