@@ -22,7 +22,9 @@ def comprobar_hosts_vivos(domain):
     os.system(nmap_command)
 
     print_success("La comprobación de hosts vivos ha finalizado.")
+    print_file(host_vivos)
     print_info(f"Los resultados se han guardado en {hosts_vivos}")
+    guardar_hosts_vivos(domain)
 
 def guardar_hosts_vivos(domain):
     """Guarda las IPs y subdominios vivos en archivos separados."""
@@ -32,5 +34,13 @@ def guardar_hosts_vivos(domain):
     archivo_ips = ruta_en_resultados("ips.txt", domain)
     archivo_subdominios = ruta_en_resultados("subdominios.txt", domain)
 
+    print_success("Las IPs vivas se han extraido para su posterior análisis.")
     guardar_en_archivo(ips, archivo_ips)
+    print_file(archivo_ips)
+    print_info(f"Las IPs vivas se han guardado en {archivo_ips}")
+
+    print_success("Los subdominios vivos se han extraido para su posterior análisis.")
     guardar_en_archivo(subdominios, archivo_subdominios)
+    print_file(archivo_subdominios)
+
+

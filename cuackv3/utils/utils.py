@@ -69,7 +69,7 @@ def print_titulo():
     arte = f"""
 {Colors.WHITE}   (\\(\\    {Colors.YELLOW}  >(.)__ <( Quack! )
 {Colors.WHITE}   (-.-)    {Colors.YELLOW}    (___/  
-{Colors.WHITE}  o_(")("){Colors.RESET}
+{Colors.WHITE}  o_(")("){Colors.RESET}    https://www.github.com/suraei/cuack
     """
     print(arte)
 
