@@ -1,7 +1,5 @@
-<img src="cuack.png" alt="Logo Cuack" width="100"/>
 
-
-# Cuack: Herramienta de Análisis de Red 🌐 :duck:
+# <img src="cuack.png" alt="Logo Cuack" width="100"/> Cuack: Herramienta de Análisis de Red 🌐 :duck:
 
 **Cuack** es una herramienta  de análisis de red diseñada para facilitar la exploración y el análisis de infraestructuras de red. Incorpora funcionalidades para descubrimiento de subdominios, comprobación de hosts vivos, análisis de servicios y generación de reportes detallados.
 
