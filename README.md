@@ -1,4 +1,5 @@
-![Logo Cuack](cuack.png)
+<img src="cuack.png" alt="Logo Cuack" width="200"/>
+
 
 # Cuack: Herramienta de Análisis de Red 🌐 :duck:
 
