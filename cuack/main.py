@@ -30,15 +30,16 @@ def main():
             print_error("La entrada no es una URL ni una dirección IP válida.")
             return
 
+    if not is_ip(user_input):
     # Verificar la existencia de subdominios.txt y preguntar si desea volver a buscar subdominios
-    if comprobar_archivo_resultados(domain, "subdominios.txt"):
-        opcion = ask_user("Los subdominios ya han sido obtenidos previamente. ¿Deseas volver a obtenerlos? (S/N): ").strip().lower()
-        if opcion == "s":
-            buscar_subdominios(domain)
-    else:
-        opcion = ask_user("¿Deseas buscar subdominios? (S/N): ").strip().lower()
-        if opcion == "s":
-            buscar_subdominios(domain)
+        if comprobar_archivo_resultados(domain, "subdominios.txt"):
+            opcion = ask_user("Los subdominios ya han sido obtenidos previamente. ¿Deseas volver a obtenerlos? (S/N): ").strip().lower()
+            if opcion == "s":
+                buscar_subdominios(domain)
+        else:
+            opcion = ask_user("¿Deseas buscar subdominios? (S/N): ").strip().lower()
+            if opcion == "s":
+                buscar_subdominios(domain)
 
     # Verificar la existencia de ips.txt y preguntar si desea volver a comprobar hosts vivos
     if comprobar_archivo_resultados(domain, "vivos.nmap"):
@@ -56,7 +57,7 @@ def main():
         if opcion_nmap == "s":
             ejecutar_nmap(domain)
     else:
-        opcion_nmap = ask_user("¿Deseas realizar una búsqueda de puertos y servivcios? (S/N): ").strip().lower()
+        opcion_nmap = ask_user("¿Deseas realizar una búsqueda de puertos y servicios? (S/N): ").strip().lower()
         if opcion_nmap == "s":
             ejecutar_nmap(domain)
 
