@@ -12,10 +12,10 @@ def comprobar_hosts_vivos(domain):
     subdomains_file = ruta_en_resultados("subdominios.txt", domain)
     if comprobar_archivo_resultados(domain, "subdominios.txt"):
         # Si existe, usarlo en el comando de Nmap
-        nmap_command = ["nmap", "-sn", "-iL", subdomains_file, "-oN", hosts_vivos]
+        nmap_command = ["nmap", "-sn", "-iL", subdomains_file,"T4", "-oN", hosts_vivos]
     else:
         # Si no, usar el dominio como destino en el comando de Nmap
-        nmap_command = ["nmap", "-sn", domain, "-oN", hosts_vivos]
+        nmap_command = ["nmap", "-sn", domain,"T4","-oN", hosts_vivos]
 
     print_info("Iniciando comprobación de hosts vivos. Esto puede llevar tiempo...\n")
 

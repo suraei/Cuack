@@ -36,13 +36,24 @@ def ensure_directory(domain):
     return directory
 
 def is_ip(address):
-    """Determina si la cadena dada es una dirección IP válida."""
+    """
+    Determina si la cadena dada es una dirección IP válida, incluidas las direcciones con máscara de red.
+    
+    :param address: La cadena que se va a verificar.
+    :return: True si es una dirección IP válida, False de lo contrario.
+    """
+    # Separar la dirección IP y la máscara de red (si está presente)
+    parts = address.split('/')
+    ip_address = parts[0]  # La dirección IP está en la primera parte
+
     try:
-        ipaddress.ip_address(address)
+        # Verificar si la dirección IP es válida
+        ipaddress.ip_address(ip_address)
         return True
     except ValueError:
         return False
 
+        
 def is_valid_url(url):
     """Determina si la cadena dada parece ser una URL válida."""
     # Expresión regular para validar la URL
@@ -285,22 +296,39 @@ def extraer_versiones_servicios_unicas(detalles_nmap):
                 versiones_unicas.add(identificador_servicio)
     return versiones_unicas
 
+import json
+
 def archivo_esta_vacio(ruta_archivo):
     """
-    Comprueba si el archivo especificado por ruta_archivo está vacío.
+    Comprueba si el archivo especificado por ruta_archivo está vacío o contiene una lista JSON vacía.
     
     :param ruta_archivo: Ruta completa al archivo a verificar.
-    :return: True si el archivo está vacío, False de lo contrario.
+    :return: True si el archivo está vacío o contiene una lista JSON vacía, False de lo contrario.
     """
     try:
-        # Método 1: Verificar el tamaño del archivo directamente.
-        if os.path.getsize(ruta_archivo) > 0:
-            return False
-        else:
+        # Verificar el tamaño del archivo directamente
+        if os.path.getsize(ruta_archivo) == 0:
             return True
-    except OSError:
-        # Si el archivo no existe o hay un error al acceder a él, considera que está "vacío"
-        print_error(f"No se pudo acceder al archivo: {ruta_archivo}")
+
+        # Leer el contenido del archivo
+        with open(ruta_archivo, 'r') as file:
+            contenido = file.read()
+
+        # Comprobar si el contenido es una lista vacía en formato JSON
+        if contenido.strip() == '[]':
+            return True
+
+        # Si el archivo es un JSON, comprobar si contiene una lista vacía
+        try:
+            json_content = json.loads(contenido)
+            if isinstance(json_content, list) and len(json_content) == 0:
+                return True
+        except json.JSONDecodeError:
+            pass
+
+        return False
+    except OSError as e:
+        # Si hay un error al acceder al archivo, considerarlo como vacío
         return True
 
 def no_hay_hosts_vivos(nmap_results_file):

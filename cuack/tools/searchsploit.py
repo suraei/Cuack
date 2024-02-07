@@ -41,7 +41,10 @@ def searchsploit(dominio):
         file.write(json.dumps(resultados_exploits, indent=4))
 
     #Actualizamos el reporte:
-    actualizar_reporte(dominio)
+    if not archivo_esta_vacio:
+        actualizar_reporte(dominio)
+    else:
+        print_info("No se ha encontrado ningún exploit para los servicios obtenidos")
 
 
 def procesar_resultados_searchsploit(json_file):
