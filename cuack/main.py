@@ -46,25 +46,29 @@ def main():
         opcion_vivos = ask_user("Los hosts vivos ya han sido comprobados previamente. ¿Deseas volver a comprobarlos? (S/N): ").strip().lower()
         if opcion_vivos == "s":
             comprobar_hosts_vivos(domain)
-
     else:
         opcion_vivos = ask_user("¿Deseas comprobar qué hosts están vivos? (S/N): ").strip().lower()
         if opcion_vivos == "s":
             comprobar_hosts_vivos(domain)
 
-    if comprobar_archivo_resultados(domain, "nmap.xml"):
-        opcion_nmap = ask_user("¿Ya se ha ejecutado una búsqueda de puertos y servicios anteriormente, deseas volver a hacerla? (S/N) ").strip().lower()
-        if opcion_nmap == "s":
-            ejecutar_nmap(domain)
-    else:
-        opcion_nmap = ask_user("¿Deseas realizar una búsqueda de puertos y servicios? (S/N): ").strip().lower()
-        if opcion_nmap == "s":
-            ejecutar_nmap(domain)
+    if no_hay_hosts_vivos(ruta_en_resultados("vivos.nmap",domain)):
+        print_error("Tu scope está muerto")
 
-    if comprobar_archivo_resultados(domain, "nmap.xml"):
-        opcion_exploits = ask_user("¿Desea ejecutar una búsqueda de posibles exploits? (S/N): ").strip().lower()
-        if opcion_exploits == "s":
-            searchsploit(domain)
+    else:
+
+        if comprobar_archivo_resultados(domain, "nmap.xml"):
+            opcion_nmap = ask_user("¿Ya se ha ejecutado una búsqueda de puertos y servicios anteriormente, deseas volver a hacerla? (S/N) ").strip().lower()
+            if opcion_nmap == "s":
+                ejecutar_nmap(domain)
+        else:
+            opcion_nmap = ask_user("¿Deseas realizar una búsqueda de puertos y servicios? (S/N): ").strip().lower()
+            if opcion_nmap == "s":
+                ejecutar_nmap(domain)
+
+        if comprobar_archivo_resultados(domain, "nmap.xml"):
+            opcion_exploits = ask_user("¿Desea ejecutar una búsqueda de posibles exploits? (S/N): ").strip().lower()
+            if opcion_exploits == "s":
+                searchsploit(domain)
     
             
     

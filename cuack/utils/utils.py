@@ -302,3 +302,19 @@ def archivo_esta_vacio(ruta_archivo):
         # Si el archivo no existe o hay un error al acceder a él, considera que está "vacío"
         print_error(f"No se pudo acceder al archivo: {ruta_archivo}")
         return True
+
+def no_hay_hosts_vivos(nmap_results_file):
+    """
+    Verifica si no hay ningún host vivo en los resultados de un escaneo Nmap.
+
+    Args:
+        nmap_results_file (str): Ruta al archivo de resultados del escaneo Nmap.
+
+    Returns:
+        bool: True si no hay hosts vivos, False de lo contrario.
+    """
+    with open(nmap_results_file, 'r') as f:
+        for line in f:
+            if '0 hosts up' in line:
+                return True
+    return False
