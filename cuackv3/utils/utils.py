@@ -268,3 +268,37 @@ def parsear_nmap(archivo_xml):
         print_error(f"No se encontró el archivo {archivo_xml}.")
 
     return resultado
+
+def extraer_versiones_servicios_unicas(detalles_nmap):
+    """
+    Extrae y devuelve un conjunto de versiones únicas de servicios de los resultados de parsear_nmap.
+
+    :param detalles_nmap: Diccionario con los detalles de parsear_nmap.
+    :return: Conjunto de cadenas con las versiones únicas de los servicios.
+    """
+    versiones_unicas = set()
+    for ip, servicios in detalles_nmap.items():
+        for puerto, info in servicios.items():
+            if info['version']:
+                # Creamos una cadena que combine el servicio y la versión para facilitar la búsqueda de exploits
+                identificador_servicio = f"{info['servicio']} {info['version']}".strip()
+                versiones_unicas.add(identificador_servicio)
+    return versiones_unicas
+
+def archivo_esta_vacio(ruta_archivo):
+    """
+    Comprueba si el archivo especificado por ruta_archivo está vacío.
+    
+    :param ruta_archivo: Ruta completa al archivo a verificar.
+    :return: True si el archivo está vacío, False de lo contrario.
+    """
+    try:
+        # Método 1: Verificar el tamaño del archivo directamente.
+        if os.path.getsize(ruta_archivo) > 0:
+            return False
+        else:
+            return True
+    except OSError:
+        # Si el archivo no existe o hay un error al acceder a él, considera que está "vacío"
+        print_error(f"No se pudo acceder al archivo: {ruta_archivo}")
+        return True

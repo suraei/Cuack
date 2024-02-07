@@ -5,6 +5,7 @@ from tools.vivos import comprobar_hosts_vivos
 from tools.buscar_subdominios import buscar_subdominios
 from tools.nmap import ejecutar_nmap
 from tools.reporting import *
+from tools.searchsploit import *
 
 
 # Inicializar Colorama
@@ -40,7 +41,7 @@ def main():
             buscar_subdominios(domain)
 
     # Verificar la existencia de ips.txt y preguntar si desea volver a comprobar hosts vivos
-    if comprobar_archivo_resultados(domain, "ips.txt"):
+    if comprobar_archivo_resultados(domain, "vivos.nmap"):
         opcion_vivos = ask_user("Los hosts vivos ya han sido comprobados previamente. ¿Deseas volver a comprobarlos? (S/N): ").strip().lower()
         if opcion_vivos == "s":
             comprobar_hosts_vivos(domain)
@@ -50,12 +51,21 @@ def main():
         if opcion_vivos == "s":
             comprobar_hosts_vivos(domain)
 
-    if comprobar_archivo_resultados(domain, "vivos.nmap"):
-        opcion_nmap = ask_user("¿Desea ejecutar Nmap para un análisis detallado de las IPs encontradas? (S/N): ").strip().lower()
+    if comprobar_archivo_resultados(domain, "nmap.xml"):
+        opcion_nmap = ask_user("¿Ya se ha ejecutado una búsqueda de puertos y servicios anteriormente, deseas volver a hacerla? (S/N) ").strip().lower()
         if opcion_nmap == "s":
             ejecutar_nmap(domain)
     else:
-        print_warning("Primero debe realizar la comprobación de hosts vivos para generar el archivo ips.txt.")
-        
+        opcion_nmap = ask_user("¿Deseas realizar una búsqueda de puertos y servivcios? (S/N): ").strip().lower()
+        if opcion_nmap == "s":
+            ejecutar_nmap(domain)
+
+    if comprobar_archivo_resultados(domain, "nmap.xml"):
+        opcion_exploits = ask_user("¿Desea ejecutar una búsqueda de posibles exploits? (S/N): ").strip().lower()
+        if opcion_exploits == "s":
+            searchsploit(domain)
+    
+            
+    
 if __name__ == "__main__":
     main()

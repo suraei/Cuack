@@ -1,6 +1,7 @@
 from prettytable import PrettyTable
 from utils.utils import *
 import os
+import json
 
 def generar_scope_table(ips_subdominios):
     """
@@ -40,31 +41,45 @@ def generar_puertos_servicios_table(detalles_nmap):
     return table.get_string()
 
 
-def generar_actualizar_reporte(domain, archivo_nmap_vivos, archivo_nmap=None):
-    """
-    Genera o actualiza el reporte completo con las secciones 'Scope' y, opcionalmente, 'Puertos y servicios'.
-    """
+def actualizar_reporte(domain):
+
     ensure_directory(domain)
     report_path = ruta_en_resultados("report.txt", domain)
+    archivo_nmap_vivos = ruta_en_resultados("vivos.nmap", domain)
     ips_subdominios = extraer_hosts_vivos_de_nmap(archivo_nmap_vivos)
 
-    with open(report_path, "w") as report_file:
-        report_file.write(f"Reporte de {domain}\n")
-        report_file.write("=" * 50 + "\n\n")
+    # Generar la tabla de Scope fuera del bloque with para evitar duplicados
+    scope_table = generar_scope_table(ips_subdominios)
 
-        # Generar y escribir la sección 'Scope'
+    with open(report_path, "a") as report_file:
+        # Verificar si el archivo está vacío para evitar escribir la cabecera múltiples veces
+        if os.path.getsize(report_path) == 0:
+            report_file.write(f"Reporte de {domain}\n")
+            report_file.write("=" * 50 + "\n\n")
+
+        # Escribir la sección 'Scope'
         report_file.write("Scope\n")
-        report_file.write(generar_scope_table(ips_subdominios) + "\n\n")
+        report_file.write(scope_table + "\n\n")
         
         # Si se proporciona archivo_nmap, generar y escribir la sección 'Puertos y servicios'
-        if archivo_nmap:
-            detalles_nmap = parsear_nmap(archivo_nmap)
-            #print(detalles_nmap)
+        if comprobar_archivo_resultados(domain, "nmap.xml"):
+            detalles_nmap = parsear_nmap(ruta_en_resultados("nmap.xml", domain))
             report_file.write("Puertos y servicios\n")
-            report_file.write(generar_puertos_servicios_table(detalles_nmap) + "\n")
+            report_file.write(generar_puertos_servicios_table(detalles_nmap) + "\n\n")
 
+        # Nueva sección para exploits encontrados
+        if comprobar_archivo_resultados(domain, "exploits.json"):
+            report_file.write("Posibles Exploits\n\n[!] Si quieres descargar alguno ejecuta el comando searchsploit -m {id}")
+            exploits_path = ruta_en_resultados("exploits.json", domain)
+            with open(exploits_path, "r") as exploits_file:
+                exploits_data = json.load(exploits_file)
+                exploits_table = PrettyTable(["Título", "ID"])
+                for exploit in exploits_data:
+                    exploit_title = exploit["Title"]
+                    exploit_id = exploit["Path"].split("/")[-1].split(".")[0]
+                    exploits_table.add_row([exploit_title, exploit_id])
+                report_file.write(exploits_table.get_string() + "\n\n")
+    
     print_file(report_path)
-
-    print_info(f"Reporte generado/actualizado con éxito.Puedes consultarlo en {report_path}")
-
+    print_info(f"Reporte actualizado con éxito. Puedes consultarlo en {report_path}")
 

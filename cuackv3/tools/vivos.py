@@ -25,7 +25,7 @@ def comprobar_hosts_vivos(domain):
     print_success("La comprobación de hosts vivos ha finalizado.")
     print_file(hosts_vivos)
     print_info(f"Los resultados se han guardado en {hosts_vivos}")
-    generar_actualizar_reporte(domain, hosts_vivos)
+    actualizar_reporte(domain)
 
 
 
