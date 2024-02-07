@@ -46,7 +46,7 @@ def is_ip(address):
 def is_valid_url(url):
     """Determina si la cadena dada parece ser una URL válida."""
     # Expresión regular para validar la URL
-    url_pattern = r"^(http://|https://)?[a-zA-Z0-9.-]+\.[a-zA-Z]{1,4}$"
+    url_pattern = r"^(http://|https://)?[a-zA-Z0-9.-]+\.[a-zA-Z]{1,6}$"
     
     # Comprobar si la URL coincide con el patrón
     return re.match(url_pattern, url) is not None
