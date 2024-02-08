@@ -30,7 +30,7 @@ def searchsploit(dominio):
                 if not parsed_result["RESULTS_EXPLOIT"]:
                     print_info(f"No se encontraron exploits relevantes para {identificador_servicio}.")
                 else:
-                    print_success(f"Posibles exploits para {identificador_servicio}:")
+                    print_success(f"Se encontró posible exploit para {identificador_servicio}")
                     #print(json.dumps(parsed_result["RESULTS_EXPLOIT"], indent=4))
                     resultados_exploits.extend(parsed_result["RESULTS_EXPLOIT"])
             except Exception as e:
@@ -41,7 +41,7 @@ def searchsploit(dominio):
         file.write(json.dumps(resultados_exploits, indent=4))
 
     #Actualizamos el reporte:
-    if not archivo_esta_vacio:
+    if not archivo_esta_vacio(exploits_path):
         actualizar_reporte(dominio)
     else:
         print_info("No se ha encontrado ningún exploit para los servicios obtenidos")

@@ -149,6 +149,17 @@ def run_tool(command, output_file):
     except subprocess.CalledProcessError as e:
         print_error(f"Error al ejecutar {command.split()[0]}: {e}")
 
+def run_tool_capture_output(command):
+    """Ejecuta una herramienta y captura tanto su salida estándar como de error."""
+    try:
+        result = subprocess.run(command, shell=True, capture_output=True, text=True)
+        # Combina ambas salidas pero principalmente nos interesa stdout para `ffuf`
+        output = result.stdout
+        return output
+    except subprocess.CalledProcessError as e:
+        print_error(f"Error al ejecutar {command}: {e}")
+        return ""
+
 
 def comprobar_archivo_resultados(dominio, nombre_archivo):
     """Comprueba si un archivo existe en la carpeta 'Resultados' dentro del directorio del dominio."""
@@ -346,3 +357,32 @@ def no_hay_hosts_vivos(nmap_results_file):
             if '0 hosts up' in line:
                 return True
     return False
+
+
+def obtener_webs_nmap(nmap_xml_path):
+    """
+    Obtener las direcciones IP con servicio web del archivo nmap.xml.
+    
+    :param nmap_xml_path: Ruta al archivo nmap.xml.
+    :return: Lista de direcciones IP con servicio web.
+    """
+    ips_con_web = set()  # Usamos un conjunto en lugar de una lista para evitar duplicados
+
+    try:
+        tree = ET.parse(nmap_xml_path)
+        root = tree.getroot()
+
+        # Recorrer los elementos del árbol XML
+        for host in root.findall('host'):
+            for port in host.findall('.//port'):
+                service = port.find('.//service')
+                if service is not None and service.get('name', '').lower() in ['http', 'https']:
+                    # Agregar la dirección IP al conjunto si tiene un servicio web (HTTP o HTTPS)
+                    address = host.find('.//address').get('addr')
+                    ips_con_web.add(address)  # Utilizamos add en lugar de append
+    except ET.ParseError:
+        print_error(f"No se pudo analizar el archivo XML: {nmap_xml_path}")
+
+    # Convertir el conjunto nuevamente a una lista antes de devolverlo
+    return list(ips_con_web)
+
