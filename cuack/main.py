@@ -72,7 +72,7 @@ def main():
             if opcion == "s":
                 searchsploit(domain)
         else:
-            opcion_nmap = ask_user("¿Deseas realizar una búsqueda de exploits para los servicios encontrados? (S/N): ").strip().lower()
+            opcion = ask_user("¿Deseas realizar una búsqueda de exploits para los servicios encontrados? (S/N): ").strip().lower()
             if opcion == "s":
                 searchsploit(domain)
 

@@ -35,42 +35,55 @@ def generar_scope_table_simple(ips):
 
 
 def generar_puertos_servicios_table(detalles_nmap):
-    table = PrettyTable(["IPs", "Puertos", "Servicios", "Versiones", "Detalles"])
-    for ip, servicios in detalles_nmap.items():
-        for puerto, info in servicios.items():
-            table.add_row([
-                ip,
-                puerto,
-                info['servicio'],
-                info['version'],
-                info['detalles']
-            ])
+    table = PrettyTable(["IPs", "Puertos", "Servicios", "Servidor", "Detalles", "Detalles Host"])
+
+    for ip, info_host in detalles_nmap.items():
+        puertos_servicios = info_host.get('puertos_servicios', {})
+        detalles_host = info_host.get('detalles_host', '')
+        detalles_host = detalles_host.split(';') if detalles_host else []  # Convertir a lista si no es None
+
+        for port_id, info in puertos_servicios.items():
+            detalles = info['detalles']
+            detalles_host_row = detalles_host.pop(0) if detalles_host else ''
+            table.add_row([ip, port_id, info['servicio'], info['version'], detalles, detalles_host_row])
             ip = ""  # Evita repetir la IP en las siguientes filas
-            
+
+        # Agrega filas vacías si quedan detalles_host sin distribuir
+        while detalles_host:
+            detalles_host_row = detalles_host.pop(0)
+            ip = ""  # Evita repetir la IP en las siguientes filas
+            table.add_row(['', '', '', '', '', detalles_host_row])
+
         # Agrega una fila en blanco después de cada IP
-        table.add_row(['', '', '', '', ''])
+        ip = ""  # Evita repetir la IP en las siguientes filas
+        table.add_row(['', '', '', '', '', ''])
+
+    return table.get_string()
+
+def generar_tabla_exploits(exploits):
+    table = PrettyTable(["Título", "ID", "Posibles afectados"])
+    for exploit in exploits:
+        titulo = exploit.get("Title", "")
+        id_exploit = exploit.get("EDB-ID", "")
+        afectados = exploit.get("Afectados", "")
+        table.add_row([titulo, id_exploit, afectados])
     return table.get_string()
 
 
-def generar_subdirectorios_table_ffuf(directorio_ffuf):
+def generar_subdirectorios_table_ffuf(ips_subdominios):
     """
     Genera la tabla de subdirectorios a partir de los resultados de FFUF.
+
+    :param ips_subdominios: Diccionario con las IPs como claves y listas de subdominios como valores.
     """
     table = PrettyTable(["IPs", "Subdirectorios"])
-    for archivo in os.listdir(directorio_ffuf):
-        if archivo.startswith("ffuf_results_") and archivo.endswith(".json"):
-            ip = archivo.replace("ffuf_results_", "").replace(".json", "")
-            ruta_archivo = os.path.join(directorio_ffuf, archivo)
-            try:
-                with open(ruta_archivo, 'r') as f:
-                    data = json.load(f)
-                    for resultado in data.get("results", []):
-                        url = resultado.get("url", "")
-                        table.add_row([ip, url])
-                    # Añadir una fila en blanco después de cada IP para mejor legibilidad
-                    table.add_row(['', ''])
-            except json.JSONDecodeError:
-                print_error(f"Error al decodificar JSON para la IP {ip} en el archivo {archivo}")
+    for ip, subdominios in ips_subdominios.items():
+        for subdominio in subdominios:
+            table.add_row([ip, subdominio])
+        # Añadir una fila en blanco después de cada IP para mejor legibilidad
+            ip = ""  # Evita repetir la IP en las siguientes filas
+        table.add_row(['', ''])
+
     return table.get_string()
 
 
@@ -79,6 +92,8 @@ def actualizar_reporte(domain):
     report_path = ruta_en_resultados("report.txt", domain)
     directorio_ffuf = ruta_en_resultados("FFUF", domain)
     ensure_directory(directorio_ffuf)
+    directorio_exploits = ruta_en_resultados("exploits.json",domain)
+    exploits_path = ruta_en_resultados("exploits.json", domain)
 
     # Verificar la existencia de subdominios.txt en la carpeta de resultados
     if comprobar_archivo_resultados("subdominios.txt", domain):
@@ -103,24 +118,38 @@ def actualizar_reporte(domain):
             report_file.write("Puertos y servicios\n")
             report_file.write(generar_puertos_servicios_table(detalles_nmap) + "\n\n")
 
-        # Nueva sección para exploits encontrados
-        if comprobar_archivo_resultados(domain, "exploits.json") and not archivo_esta_vacio(ruta_en_resultados("exploits.json", domain)):
-            report_file.write("Posibles Exploits\n\n[!] Si quieres descargar alguno ejecuta el comando searchsploit -m {ID}\n")
-            exploits_path = ruta_en_resultados("exploits.json", domain)
-            with open(exploits_path) as exploits_file:
-                exploits_data = json.load(exploits_file)
-                exploits_table = PrettyTable(["Título", "ID"])
-                for exploit in exploits_data:
-                    exploit_title = exploit.get("Title", "")
-                    exploit_id = os.path.basename(exploit.get("Path", "")).split(".")[0]
-                    exploits_table.add_row([exploit_title, exploit_id])
+        # sección para exploits encontrados
+        if comprobar_archivo_resultados(domain, "exploits.json") and not archivo_esta_vacio(exploits_path):
+            with open(exploits_path, "r") as file:
+                exploits_data = json.load(file)
+
+            exploits_table = PrettyTable(["Título", "ID", "Posibles afectados"])
+            for exploit in exploits_data:
+                posibles_afectados = []
+                for ip, info_host in detalles_nmap.items():
+                    for port_id, info in info_host.get('puertos_servicios', {}).items():
+                        puerto, _ = port_id.split("/")
+                        if verificar_afectados_por_exploit(ip, port_id.split("/")[0], info['version'], exploit):
+                            posibles_afectados.append(f"{ip}:{port_id}")
+                if posibles_afectados:
+                    exploits_table.add_row([exploit.get("Title", ""), exploit.get("EDB-ID", ""), ", ".join(posibles_afectados)])
+
+            if posibles_afectados:
+                report_file.write("Posibles Exploits\n\n")
                 report_file.write(exploits_table.get_string() + "\n\n")
+        else:
+            print_warning("No se encontraron datos de exploits para incluir en el reporte.")
+
+
+
 
         # Nueva sección para subdirectorios encontrados con FFUF
-        if os.path.isdir(directorio_ffuf) and len(os.listdir(directorio_ffuf)) > 0:
+        if verificar_resultados_ffuf():
             report_file.write("Subdirectorios encontrados con FFUF\n\n")
-            subdirectorios_table = generar_subdirectorios_table_ffuf(directorio_ffuf)
+            subdirectorios_table = generar_subdirectorios_table_ffuf(ips_con_subdominios)
             report_file.write(subdirectorios_table + "\n\n")
+        else:
+            print_warning("No se encontraron subdirectorios para incluir en el reporte.")
 
     print_file(report_path)
     print_info(f"Reporte actualizado con éxito. Puedes consultarlo en {report_path}")

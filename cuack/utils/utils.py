@@ -3,6 +3,7 @@ import re
 import ipaddress
 import subprocess
 import xml.etree.ElementTree as ET
+import json
 
 def init(autoreset=True):
     """Inicializa la salida de colores."""
@@ -242,13 +243,42 @@ def parsear_ips_nmap(archivo_xml):
     
     return ips
 
-def interpretar_scripts(scripts):
+def interpretar_scripts(scripts_outputs):
     """Interpreta la salida de los scripts para asignar valores a detalles basados en reglas."""
     detalles = []
-    if "TRAEFIK DEFAULT CERT" in scripts:
-        detalles.append("[!] Redirecciona el tráfico")
-    # Agrega más reglas según sea necesario
+    for script_output in scripts_outputs:
+        if 'service name="ldap"' in script_output:
+            # Buscar y procesar hostname y domain del servicio LDAP
+            hostname_match = re.search(r'hostname="([^"]+)"', script_output)
+            domain_match = re.search(r'Domain: ([^,]+)', script_output)
+            hostname = hostname_match.group(1) if hostname_match else ''
+            domain = domain_match.group(1) if domain_match else ''
+            detalles.append(f"Hostname: {hostname}")
+            detalles.append(f"Domain: {domain}")
+
     return "; ".join(detalles)
+
+def interpretar_hostscripts(scripts_outputs):
+    """Interpreta la salida de los scripts para asignar valores a detalles basados en reglas."""
+    detalles = []
+    for script_output in scripts_outputs:
+        if script_output:  # Verifica si script_output no es None ni una cadena vacía
+            lines = script_output.strip().split('\n')  # Divide las líneas de la salida del script
+            for line in lines:
+                # Buscar y procesar la información necesaria de cada línea
+                if "OS:" in line:
+                    detalles.append(line.strip())
+                elif "Computer name:" in line:
+                    detalles.append(line.strip())
+                elif "Workgroup:" in line:
+                    detalles.append(line.strip())
+                elif "message_signing: disabled" in line:
+                    detalles.append("Entrada al smb sin credenciales")
+
+    return "; ".join(detalles)
+
+
+
 
 def parsear_nmap(archivo_xml):
     resultado = {}
@@ -258,38 +288,50 @@ def parsear_nmap(archivo_xml):
         for host in root.findall('.//host'):
             if host.find('./status').get('state') == 'up':
                 ip = host.find('./address').get('addr')
+                hostscripts_outputs = []  # Inicializa la lista de salidas de hostscripts
+                for hostscript in host.findall('.//hostscript'):  # Itera sobre los elementos hostscript
+                    script_outputs = [script.get('output') for script in hostscript.findall('./script')]
+                    #print(f"SOpts:{script_outputs}")
+                    # Concatena todas las salidas de los scripts en una lista
+                    hostscripts_outputs.extend(script_outputs)
+                detalles_host = interpretar_hostscripts(hostscripts_outputs)  # Pasa los textos a la función
                 puertos_servicios = {}
                 for port in host.findall('.//port'):
                     if port.find('./state').get('state') == 'open':
-                        portid = port.get('portid') + '/' + port.get('protocol')
-                        servicio = port.find('./service').get('name', 'unknown')
-                        producto = port.find('./service').get('product', '')
-                        version = port.find('./service').get('version', '')
-                        extrainfo = port.find('./service').get('extrainfo', '')
-                        scripts_outputs = [script.get('output') for script in port.findall('./script')]
-                        scripts_info = "; ".join(scripts_outputs)
-                        detalles = interpretar_scripts(scripts_info)
+                        servicio_element = port.find('./service')
+                        if servicio_element is not None:
+                            portid = port.get('portid') + '/' + port.get('protocol')
+                            servicio = port.find('./service').get('name', 'unknown')
+                            producto = port.find('./service').get('product', '')
+                            version = port.find('./service').get('version', '')
+                            extrainfo = port.find('./service').get('extrainfo', '')
+                            scripts_outputs = [script.get('output') for script in port.findall('./script')]
+                            #print(f"a:{scripts_outputs}")
+                            if any("Content-Type: text/html" in script_output for script_output in scripts_outputs):
+                                servicio = "http"
+                            detalles = interpretar_scripts(scripts_outputs)
 
-                        # Ajuste para 'producto' y 'version' con la condición general [A]/[B]
-                        version_servidor = f"{producto} {version}".strip()
-                        if '/' in version_servidor:
-                            version_servidor = version_servidor.split('/')[0]
+                            # Ajuste para 'producto' y 'version' con la condición general [A]/[B]
+                            version_servidor = f"{producto} {version}".strip()
+                            if '/' in version_servidor:
+                                version_servidor = version_servidor.split('/')[0]
 
-                        servicio_info = {
-                            'servicio': servicio,
-                            'version': version_servidor,
-                            'detalles': detalles,
-                            'extrainfo': extrainfo,
-                            'scripts': scripts_info
-                        }
-                        puertos_servicios[portid] = servicio_info
-                resultado[ip] = puertos_servicios
+                            servicio_info = {
+                                'servicio': servicio,
+                                'version': version_servidor,
+                                'detalles': detalles,
+                                'extrainfo': extrainfo,
+                            }
+                            puertos_servicios[portid] = servicio_info
+                resultado[ip] = {'puertos_servicios': puertos_servicios, 'detalles_host': detalles_host}
     except ET.ParseError as e:
         print_error(f"Error al parsear el archivo XML: {e}")
     except FileNotFoundError:
         print_error(f"No se encontró el archivo {archivo_xml}.")
 
     return resultado
+
+
 
 def extraer_versiones_servicios_unicas(detalles_nmap):
     """
@@ -299,13 +341,16 @@ def extraer_versiones_servicios_unicas(detalles_nmap):
     :return: Conjunto de cadenas con las versiones únicas de los servicios.
     """
     versiones_unicas = set()
-    for ip, servicios in detalles_nmap.items():
-        for puerto, info in servicios.items():
-            if info['version']:
+    for detalles in detalles_nmap.values():
+        servicios = detalles.get('puertos_servicios', {})
+        for info in servicios.values():
+            version = info.get('version')
+            if version:
                 # Creamos una cadena que combine el servicio y la versión para facilitar la búsqueda de exploits
-                identificador_servicio = f"{info['servicio']} {info['version']}".strip()
+                identificador_servicio = f"{info['servicio']} {version}".strip()
                 versiones_unicas.add(identificador_servicio)
     return versiones_unicas
+
 
 import json
 
@@ -386,3 +431,67 @@ def obtener_webs_nmap(nmap_xml_path):
     # Convertir el conjunto nuevamente a una lista antes de devolverlo
     return list(ips_con_web)
 
+
+def obtener_ips_con_subdominios(domain):
+    """
+    Obtiene las IPs con sus respectivos subdominios a partir de los archivos de resultados de FFUF.
+
+    :param domain: El dominio para el que se obtendrán los resultados.
+    :return: Un diccionario donde las claves son las IPs y los valores son listas de subdominios.
+    """
+    directorio_ffuf = ruta_en_resultados("FFUF", domain)
+    ips_con_subdominios = {}
+
+    if os.path.isdir(directorio_ffuf):
+        for archivo in os.listdir(directorio_ffuf):
+            if archivo.startswith("ffuf_results_") and archivo.endswith(".json"):
+                ip = archivo.replace("ffuf_results_", "").replace(".json", "")
+                ruta_archivo = os.path.join(directorio_ffuf, archivo)
+                try:
+                    with open(ruta_archivo, 'r') as f:
+                        data = json.load(f)
+                        subdominios = [resultado.get("url", "") for resultado in data.get("results", [])]
+                        ips_con_subdominios[ip] = subdominios
+                except json.JSONDecodeError:
+                    print_error(f"Error al decodificar JSON para la IP {ip} en el archivo {archivo}")
+
+    return ips_con_subdominios
+
+
+def verificar_resultados_ffuf():
+    """Verifica si al menos uno de los archivos en la carpeta /resultados/FFUF contiene la palabra 'resultfile'."""
+    try:
+        # Ejecutar el comando find para buscar archivos que contengan 'resultfile'
+        result = subprocess.run(["find", "/resultados/FFUF", "-type", "f", "-exec", "grep", "-q", "resultfile", "{}", ";"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+        return result.returncode == 0
+    except subprocess.CalledProcessError:
+        return False
+
+def archivo_json_valido(exploit_path):
+    """Verifica si el archivo JSON es válido y no está vacío."""
+    try:
+        with open(exploit_path, "r") as file:
+            data = json.load(file)
+            return bool(data)  # True si el archivo tiene contenido, False si está vacío
+    except (FileNotFoundError, json.JSONDecodeError):
+        return False
+
+def verificar_afectados_por_exploit(ip, puerto, version, exploit):
+    """
+    Verifica si una versión de servicio específica en una IP y puerto podría verse afectada por un exploit.
+
+    :param ip: La dirección IP a verificar.
+    :param puerto: El puerto a verificar.
+    :param version: La versión del servicio que corre en el puerto.
+    :param exploit: Diccionario con información del exploit.
+    :return: True si la versión del servicio podría verse afectada, False de lo contrario.
+    """
+    # Comprobación preliminar para asegurar que el exploit contiene un título para comparar
+    if 'Title' in exploit:
+        # Intenta identificar si la versión del servicio está en el título del exploit
+        if version in exploit['Title']:
+            print(f"Posible afectación encontrada: {ip}:{puerto} podría ser afectado por {exploit['Title']}")
+            return True
+        else:
+            print(f"No se encontró afectación: {ip}:{puerto} no parece ser afectado por {exploit['Title']}")
+    return False

@@ -1,7 +1,7 @@
 import subprocess
 import os
 from utils.utils import *
-from tools.reporting import *
+from tools.reporting import actualizar_reporte
 
 def ejecutar_ffuf(domain):
     # Asegurar que el directorio para los resultados existe
@@ -15,7 +15,7 @@ def ejecutar_ffuf(domain):
     ips_con_web = obtener_webs_nmap(ruta_en_resultados("nmap.xml", domain))
     if not ips_con_web:
         print_warning("No se encontraron IPs con servicios web.")
-        return
+        return False
 
     for ip in ips_con_web:
         print_info(f"Ejecutando FFUF en {ip}...")
@@ -34,5 +34,12 @@ def ejecutar_ffuf(domain):
             subprocess.run(command, text=True, check=True)
             print_success(f"Resultados de FFUF para {ip} guardados en {archivo_resultados}")
             actualizar_reporte(domain)
+            
+            # Verificar si se encontró al menos un subdominio en los resultados de FFUF
+            if verificar_resultados_ffuf():
+                return True
         except subprocess.CalledProcessError as e:
             print_warning(f"FFUF encontró un error al ejecutarse en {ip}: {e}")
+    
+    return False
+
