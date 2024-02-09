@@ -467,31 +467,3 @@ def verificar_resultados_ffuf():
     except subprocess.CalledProcessError:
         return False
 
-def archivo_json_valido(exploit_path):
-    """Verifica si el archivo JSON es válido y no está vacío."""
-    try:
-        with open(exploit_path, "r") as file:
-            data = json.load(file)
-            return bool(data)  # True si el archivo tiene contenido, False si está vacío
-    except (FileNotFoundError, json.JSONDecodeError):
-        return False
-
-def verificar_afectados_por_exploit(ip, puerto, version, exploit):
-    """
-    Verifica si una versión de servicio específica en una IP y puerto podría verse afectada por un exploit.
-
-    :param ip: La dirección IP a verificar.
-    :param puerto: El puerto a verificar.
-    :param version: La versión del servicio que corre en el puerto.
-    :param exploit: Diccionario con información del exploit.
-    :return: True si la versión del servicio podría verse afectada, False de lo contrario.
-    """
-    # Comprobación preliminar para asegurar que el exploit contiene un título para comparar
-    if 'Title' in exploit:
-        # Intenta identificar si la versión del servicio está en el título del exploit
-        if version in exploit['Title']:
-            print(f"Posible afectación encontrada: {ip}:{puerto} podría ser afectado por {exploit['Title']}")
-            return True
-        else:
-            print(f"No se encontró afectación: {ip}:{puerto} no parece ser afectado por {exploit['Title']}")
-    return False
