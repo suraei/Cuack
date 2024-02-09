@@ -96,22 +96,40 @@ def generar_tabla_exploits(exploits_data):
     return tabla.get_string()
 
 
-def generar_subdirectorios_table_ffuf(ips_subdominios):
-    """
-    Genera la tabla de subdirectorios a partir de los resultados de FFUF.
+def generar_tabla_subdirectorios_ffuf(dominio):
+    # Ruta a la carpeta de resultados de FFUF
+    ruta_resultados_ffuf = f"{dominio}/Resultados/FFUF/"
 
-    :param ips_subdominios: Diccionario con las IPs como claves y listas de subdominios como valores.
-    """
-    table = PrettyTable(["IPs", "Subdirectorios"])
-    for ip, subdominios in ips_subdominios.items():
-        for subdominio in subdominios:
-            table.add_row([ip, subdominio])
-        # Añadir una fila en blanco después de cada IP para mejor legibilidad
-            ip = ""  # Evita repetir la IP en las siguientes filas
-        table.add_row(['', ''])
+    # Verificar si la carpeta existe
+    if not os.path.exists(ruta_resultados_ffuf):
+        print("La carpeta de resultados de FFUF no existe.")
+        return None
 
-    return table.get_string()
+    # Crear una tabla para mostrar los resultados
+    tabla = PrettyTable(["IP", "Subdirectorios"])
 
+    # Obtener la lista de archivos en la carpeta
+    archivos = os.listdir(ruta_resultados_ffuf)
+
+    # Recorrer los archivos JSON
+    for archivo in archivos:
+        ruta_archivo = os.path.join(ruta_resultados_ffuf, archivo)
+        if os.path.isfile(ruta_archivo):
+            with open(ruta_archivo, 'r') as f:
+                contenido = json.load(f)
+                if "results" in contenido and contenido["results"]:
+                    ip = contenido["results"][0]["host"]  # Obtener la IP del archivo JSON
+                    subdirectorios = []
+                    for resultado in contenido["results"]:
+                        subdirectorio = resultado["input"]["FUZZ"]
+                        if subdirectorio != "":
+                            subdirectorios.append(subdirectorio)
+                    # Agregar fila a la tabla después de recorrer todos los subdirectorios para una IP
+                    if subdirectorios:
+                        tabla.add_row([ip, "\n".join(subdirectorios)])
+                        tabla.add_row(["", ""])
+
+    return tabla.get_string()
 
 def actualizar_reporte(domain):
     ensure_directory(domain)
@@ -159,11 +177,12 @@ def actualizar_reporte(domain):
         
 
         # Sección para subdirectorios encontrados con FFUF
-        if verificar_resultados_ffuf():
+        if verificar_resultados_ffuf(domain):
             report_file.write("Subdirectorios encontrados con FFUF\n\n")
-            subdirectorios_table = generar_subdirectorios_table_ffuf(ips_con_subdominios)
+            subdirectorios_table = generar_tabla_subdirectorios_ffuf(domain)
             report_file.write(subdirectorios_table + "\n\n")
-        
+        else:
+            print_error("VA MAL EL VERIFICAR")
 
     print_file(report_path)
     print_info(f"Reporte actualizado con éxito. Puedes consultarlo en {report_path}")

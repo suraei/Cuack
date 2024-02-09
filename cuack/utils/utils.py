@@ -458,12 +458,25 @@ def obtener_ips_con_subdominios(domain):
     return ips_con_subdominios
 
 
-def verificar_resultados_ffuf():
-    """Verifica si al menos uno de los archivos en la carpeta /resultados/FFUF contiene la palabra 'resultfile'."""
-    try:
-        # Ejecutar el comando find para buscar archivos que contengan 'resultfile'
-        result = subprocess.run(["find", "/resultados/FFUF", "-type", "f", "-exec", "grep", "-q", "resultfile", "{}", ";"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
-        return result.returncode == 0
-    except subprocess.CalledProcessError:
-        return False
+def verificar_resultados_ffuf(dominio):
+    # Ruta a la carpeta de resultados de FFUF
+    ruta_resultados_ffuf = f"{dominio}/Resultados/FFUF/"
 
+    # Verificar si la carpeta existe
+    if not os.path.exists(ruta_resultados_ffuf):
+        return False  # No hay subdirectorios si la carpeta no existe
+
+    # Obtener la lista de archivos en la carpeta
+    archivos = os.listdir(ruta_resultados_ffuf)
+
+    # Verificar si hay al menos un archivo con resultados no vacíos
+    for archivo in archivos:
+        ruta_archivo = os.path.join(ruta_resultados_ffuf, archivo)
+        if os.path.isfile(ruta_archivo):
+            with open(ruta_archivo, 'r') as f:
+                contenido = json.load(f)
+                if contenido.get("results"):
+                    if contenido["results"]:
+                        return True  # Hay subdirectorios si al menos un archivo tiene resultados no vacíos
+
+    return False  # No hay subdirectorios si todos los archivos tienen resultados vacíos
