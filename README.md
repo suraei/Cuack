@@ -11,6 +11,7 @@
 - 🔍 **Análisis Detallado de Servicios**: Extrae información detallada de los servicios, incluyendo versiones de productos y configuraciones específicas.
 - 📊 **Reportes fáciles**: Genera informes detallados, organizados y fáciles de entender, utilizando tablas y separaciones visuales.
 - 💥 **Búsqueda de Exploits**: Busca exploits para versiones específicas de servicios encontradas en el análisis de red.
+- 📁 Búsqueda de Subdirectorios: Emplea ffuf para explorar subdirectorios y archivos de forma rápida.
 
 ## 🛠 Instalación
 
@@ -22,11 +23,12 @@ Asegúrate de tener Python 3 y las siguientes herramientas instaladas:
 - Subfinder
 - Nmap
 - Searchsploit
+- Ffuf
 
 Para sistemas basados en Debian/Ubuntu, puedes instalar estas herramientas con:
 
 ```bash
-sudo apt-get install amass assetfinder subfinder nmap exploitdb
+sudo apt-get install amass assetfinder subfinder nmap exploitdb ffuf
 ```
 ## :wheelchair: Pasos
 
