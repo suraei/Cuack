@@ -156,16 +156,14 @@ def actualizar_reporte(domain):
                 report_file.write(generar_tabla_exploits(exploits_data) + "\n\n")
             else:
                 print_warning("No se encontraron archivos de resultados de exploits para incluir en el reporte.")
-        else:
-            print_warning("No se encontró el archivo de resultados de exploits para incluir en el reporte.")
+        
 
         # Sección para subdirectorios encontrados con FFUF
         if verificar_resultados_ffuf():
             report_file.write("Subdirectorios encontrados con FFUF\n\n")
             subdirectorios_table = generar_subdirectorios_table_ffuf(ips_con_subdominios)
             report_file.write(subdirectorios_table + "\n\n")
-        else:
-            print_warning("No se encontraron subdirectorios para incluir en el reporte.")
+        
 
     print_file(report_path)
     print_info(f"Reporte actualizado con éxito. Puedes consultarlo en {report_path}")
