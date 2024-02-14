@@ -107,15 +107,15 @@ def clean_results(file_name):
 
 
 def is_domain_or_url(input):
-    if "http://" in input or "https://" in input or "." in input:
-        return True
-    return False
+    # Verifica si el input es una dirección IP
+    ip_pattern = r"^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$"
+    # Verifica si el input es una subred
+    subnet_pattern = r"^(?:[0-9]{1,3}\.){3}[0-9]{1,3}/[0-9]{1,2}$"
 
-def is_ip_or_subnet(input):
-    if "/" in input or input.count(".") == 3:
-        return True
-    return False
-
+    if re.match(ip_pattern, input) or re.match(subnet_pattern, input):
+        return False  # Es una IP o subred
+    else:
+        return True  # Es un dominio o URL
 
 
 def extract_live_hosts_to_file(xml_file):
